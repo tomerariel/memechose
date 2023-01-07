@@ -2,9 +2,10 @@ version: "3"
 
 name: memechose
 
-networks:
-  memechose:
-    external: true
+# for communication with other services in the future
+# networks:
+#   memechose:
+#     external: true
 
 services:
   db:
@@ -18,25 +19,7 @@ services:
       - ${DB_DATA_PATH}:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-    networks:
-      memechose:
-        aliases:
-          - db
-
-  # django:
-  #   restart: always
-  #   build:
-  #     context: .
-  #     dockerfile: ./memechose/Dockerfile
-  #   working_dir: /app
-  #   command: bash -c "python manage.py runserver 0.0.0.0:8000"
-  #   volumes:
-  #     - .:/app
-  #   env_file:
-  #     - .env
-  #   ports:
-  #     - "9000:8000"
-  #   networks:
-  #     memechose:
-  #       aliases:
-  #         - app
+    # networks:
+    #   memechose:
+    #     aliases:
+    #       - postgres

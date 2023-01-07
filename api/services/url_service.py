@@ -1,8 +1,11 @@
 import random
 from contextlib import suppress
+from datetime import timedelta
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db.models import F, QuerySet
+from django.utils import timezone
 
 from api.consts import ALLOWED_CHARACTERS, MAX_RETRIES_FOR_URL_CLASH, SHORT_URL_LENGTH
 from api.decorators import retry
@@ -56,3 +59,13 @@ def _is_url_valid(url: str) -> bool:
         URLValidator()(url)
         return True
     return False
+
+
+def retrieve_expired_urls(grace_days: int) -> QuerySet[Url]:
+    cutoff_time = timezone.now() + timedelta(days=grace_days)
+    return (
+        Url.objects.annotate(expiry_time=F("time_to_live") + F("created_at"))
+        .filter(expiry_time__lt=cutoff_time)
+        .order_by("created_at")
+        .only("short")
+    )

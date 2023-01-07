@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 from pathlib import Path
+
 import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -80,14 +81,14 @@ env.read_env()
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("DB_NAME"),
-        "USER": env("DB_USER"),
-        "PASSWORD": env("DB_PASSWORD"),
+        "NAME": env("DB_NAME") or "memechose",
+        "USER": env("DB_USER") or "memeuser",
+        "PASSWORD": env("DB_PASSWORD") or "memepass",
         "HOST": "localhost",
-        "PORT": 5555,
+        "PORT": int(env("DB_PORT") or 5555),
         "TEST": {
             "NAME": "test",
-        }
+        },
     }
 }
 

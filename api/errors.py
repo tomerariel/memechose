@@ -14,7 +14,7 @@ class InvalidUrl(AppError):
 
 class UrlNotFound(AppError):
     def __init__(self, url: str):
-        super().__init__(message=f"URL {url} not found", status_code=404)
+        super().__init__(message=f"URL {url} not found or has expired", status_code=404)
 
 
 class ExpiredUrl(AppError):

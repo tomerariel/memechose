@@ -5,7 +5,6 @@ from django.utils import timezone
 
 from api.consts import DEFAULT_EXPIRATION_PERIOD_DAYS, SHORT_URL_LENGTH
 
-
 DEFAULT_TTL_TIMEDELTA = timedelta(days=DEFAULT_EXPIRATION_PERIOD_DAYS)
 
 
@@ -18,8 +17,12 @@ class Url(models.Model):
 
     @property
     def is_expired(self) -> bool:
-        return timezone.now() - self.created_at > self.time_to_live
+        return self.created_at + self.time_to_live < timezone.now()
 
     def increment_hits(self) -> None:
+        """
+        Increment the hit counter for the URL.
+        Ideally, this should be done via an in-memory cache to speed up reads.
+        """
         self.hits += 1
         self.save()

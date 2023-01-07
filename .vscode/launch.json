@@ -27,6 +27,34 @@
             ],
             "django": true,
             "justMyCode": true
+        },
+        {
+            "name": "remove expired",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "remove_expired_urls",
+                "-g",
+                "10",
+                "-b",
+                "250"
+            ],
+            "django": true,
+            "justMyCode": true
+        },
+        {
+            "name": "insert_dummy_urls",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "insert_dummy_urls",
+                "-a",
+                "1000"
+            ],
+            "django": true,
+            "justMyCode": true
         }
     ]
 }
