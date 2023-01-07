@@ -1,8 +1,10 @@
 import json
-from django.http import HttpRequest, JsonResponse, HttpResponseRedirect, HttpResponse
-from django.views.decorators import http, csrf
+
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.views.decorators import csrf, http
+
+from api.decorators import request_handler
 from api.services import url_service
-from api.utils import request_handler
 
 
 @http.require_safe
@@ -16,7 +18,7 @@ def health(_) -> HttpResponse:
 @request_handler
 def create_url(request: HttpRequest) -> JsonResponse:
     url = json.loads(request.body).get("url")
-    short_url = url_service.create_short_url(url)
+    short_url = url_service.get_or_create_short_url(url)
     return JsonResponse(
         status=201,
         data={"url": short_url},

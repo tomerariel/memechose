@@ -1,23 +1,24 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
+
 from django.db import models
 from django.utils import timezone
+
 from api.consts import DEFAULT_EXPIRATION_PERIOD_DAYS, SHORT_URL_LENGTH
 
 
-def get_default_expiry_time() -> datetime:
-    return timezone.now() + timedelta(days=DEFAULT_EXPIRATION_PERIOD_DAYS)
+DEFAULT_TTL_TIMEDELTA = timedelta(days=DEFAULT_EXPIRATION_PERIOD_DAYS)
 
 
 class Url(models.Model):
     short = models.CharField(max_length=SHORT_URL_LENGTH, primary_key=True)
     long = models.CharField(max_length=255)
     created_at = models.DateTimeField(default=timezone.now)
-    expiry_time = models.DateTimeField(default=get_default_expiry_time)
+    time_to_live = models.DurationField(default=DEFAULT_TTL_TIMEDELTA)
     hits = models.BigIntegerField(default=0)
 
     @property
     def is_expired(self) -> bool:
-        return timezone.now() > self.expiry_time
+        return timezone.now() - self.created_at > self.time_to_live
 
     def increment_hits(self) -> None:
         self.hits += 1

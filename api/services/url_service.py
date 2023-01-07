@@ -1,10 +1,13 @@
 import random
-from django.core.validators import URLValidator
+from contextlib import suppress
+
 from django.core.exceptions import ValidationError
-from api.errors import UrlNotFound, InvalidUrl, ExpiredUrl, AppError
-from api.utils import retry
+from django.core.validators import URLValidator
+
+from api.consts import ALLOWED_CHARACTERS, MAX_RETRIES_FOR_URL_CLASH, SHORT_URL_LENGTH
+from api.decorators import retry
+from api.errors import AppError, ExpiredUrl, InvalidUrl, ShortUrlTaken, UrlNotFound
 from api.models import Url
-from api.consts import ALLOWED_CHARACTERS, SHORT_URL_LENGTH, MAX_RETRIES_FOR_URL_CLASH
 
 
 def _generate_short_url() -> str:
@@ -26,16 +29,14 @@ def get_redirect_url(short_url: str) -> str:
     return url.long
 
 
-def create_short_url(long_url: str) -> str:
-    if not long_url:
-        raise AppError("Please provide a URL")
+def get_or_create_short_url(long_url: str) -> str:
     if not _is_url_valid(long_url):
         raise InvalidUrl(long_url)
-    url_entry: Url = _create_url_entry_with_retry(long_url)
-    return url_entry.short
+    return _create_url_entry_with_retry(long_url).short
 
 
 @retry(
+    to_catch=ShortUrlTaken,
     to_raise=AppError,
     error_message="Error generating short URL, please try again momentarily",
     retries=MAX_RETRIES_FOR_URL_CLASH,
@@ -47,12 +48,11 @@ def _create_url_entry_with_retry(long_url: str) -> Url:
     )
     if is_available:
         return url_entry
-    raise ValueError()
+    raise ShortUrlTaken()
 
 
 def _is_url_valid(url: str) -> bool:
-    try:
+    with suppress(ValidationError):
         URLValidator()(url)
-    except ValidationError:
-        return False
-    return True
+        return True
+    return False

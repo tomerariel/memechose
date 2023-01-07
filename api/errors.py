@@ -6,7 +6,10 @@ class AppError(Exception):
 
 class InvalidUrl(AppError):
     def __init__(self, url: str):
-        super().__init__(message=f"URL {url} is invalid", status_code=400)
+        super().__init__(
+            message=f"URL {url} is invalid" if url else "Please provide a URL",
+            status_code=400,
+        )
 
 
 class UrlNotFound(AppError):
@@ -17,3 +20,7 @@ class UrlNotFound(AppError):
 class ExpiredUrl(AppError):
     def __init__(self, url: str):
         super().__init__(message=f"URL {url} has expired", status_code=410)
+
+
+class ShortUrlTaken(AppError):
+    pass

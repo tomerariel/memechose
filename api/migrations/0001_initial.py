@@ -19,13 +19,22 @@ class Migration(migrations.Migration):
                     "short",
                     models.CharField(max_length=7, primary_key=True, serialize=False),
                 ),
-                ("long", models.CharField(max_length=255)),
-                ("created_at", models.DateTimeField(default=django.utils.timezone.now)),
                 (
-                    "expiry_time",
-                    models.DateTimeField(default=api.models.get_default_expiry_time),
+                    "long",
+                    models.CharField(max_length=255),
                 ),
-                ("hits", models.BigIntegerField(default=0)),
+                (
+                    "created_at",
+                    models.DateTimeField(default=django.utils.timezone.now),
+                ),
+                (
+                    "time_to_live",
+                    models.DurationField(default=api.models.DEFAULT_TTL_TIMEDELTA),
+                ),
+                (
+                    "hits",
+                    models.BigIntegerField(default=0),
+                ),
             ],
         ),
     ]
