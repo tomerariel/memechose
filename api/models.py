@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.db import models
+from django.db.models import F
 from django.utils import timezone
 
 from api.consts import DEFAULT_EXPIRATION_PERIOD_DAYS, SHORT_URL_LENGTH
@@ -26,5 +27,4 @@ class Url(models.Model):
         Increment the hit counter for the URL.
         Ideally, this should be done via an in-memory cache to speed up reads.
         """
-        self.hits += 1
-        self.save()
+        Url.objects.filter(short=self.short).update(hits=F("hits") + 1)
