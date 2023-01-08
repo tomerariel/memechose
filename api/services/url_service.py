@@ -64,7 +64,8 @@ def _is_url_valid(url: str) -> bool:
 def retrieve_expired_urls(grace_days: int) -> QuerySet[Url]:
     cutoff_time = timezone.now() + timedelta(days=grace_days)
     return (
-        Url.objects.annotate(expiry_time=F("time_to_live") + F("created_at"))
+        Url.objects.exclude(time_to_live__isnull=True)
+        .annotate(expiry_time=F("time_to_live") + F("created_at"))
         .filter(expiry_time__lt=cutoff_time)
         .order_by("created_at")
         .only("short")
