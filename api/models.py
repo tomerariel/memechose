@@ -1,4 +1,5 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
+from typing import Optional
 
 from django.db import models
 from django.db.models import F
@@ -16,15 +17,10 @@ class Url(models.Model):
     time_to_live = models.DurationField(default=DEFAULT_TTL_TIMEDELTA, null=True)
     hits = models.BigIntegerField(default=0)
 
-    @property
-    def is_expired(self) -> bool:
+    def is_expired(self, as_of: Optional[datetime] = None) -> bool:
         if self.time_to_live is None:
             return False
-        return self.created_at + self.time_to_live < timezone.now()
+        return self.created_at + self.time_to_live <= (as_of or timezone.now())
 
     def increment_hits(self) -> None:
-        """
-        Increment the hit counter for the URL.
-        Ideally, this should be done via an in-memory cache to speed up reads.
-        """
         Url.objects.filter(short=self.short).update(hits=F("hits") + 1)

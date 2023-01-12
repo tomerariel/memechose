@@ -84,7 +84,8 @@ DATABASES = {
         "NAME": env("DB_NAME") or "memechose",
         "USER": env("DB_USER") or "memeuser",
         "PASSWORD": env("DB_PASSWORD") or "memepass",
-        "HOST": "localhost",
+        # "HOST": "localhost",
+        "HOST": env("DB_HOST"),
         "PORT": int(env("DB_PORT") or 5555),
         "TEST": {
             "NAME": "test",
