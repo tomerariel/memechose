@@ -1,7 +1,8 @@
 from django.test import TestCase
+from django.utils import timezone
 
 from api.errors import ExpiredUrl, InvalidUrl
-from api.models import Url, DEFAULT_TTL_TIMEDELTA
+from api.models import DEFAULT_TTL_TIMEDELTA, Url
 from api.services import url_service
 
 
@@ -33,12 +34,22 @@ class UrlTestCase(TestCase):
     def test_new_entry_has_correct_expiry_date(self) -> None:
         entry = self._create_valid_entry()
         self.assertEqual(entry.time_to_live, DEFAULT_TTL_TIMEDELTA)
+        self.assertFalse(entry.is_expired())
 
-    def test_expired_url_fails(self) -> None:
+    def test_non_expired_entry_is_not_blocked(self) -> None:
+        entry = self._create_valid_entry()
+        expiry_time = timezone.now() + DEFAULT_TTL_TIMEDELTA / 2
+        self.assertFalse(entry.is_expired(as_of=expiry_time))
+
+    def test_expired_url_is_identified(self) -> None:
+        entry = self._create_valid_entry()
+        expiry_time = timezone.now() + DEFAULT_TTL_TIMEDELTA
+        self.assertTrue(entry.is_expired(as_of=expiry_time))
+
+    def test_expired_url_raises(self) -> None:
         entry = self._create_valid_entry()
         entry.time_to_live -= DEFAULT_TTL_TIMEDELTA
         entry.save()
-        self.assertTrue(entry.is_expired)
         with self.assertRaises(ExpiredUrl):
             url_service.get_redirect_url(entry.short)
 

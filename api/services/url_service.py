@@ -1,9 +1,9 @@
 import random
-from contextlib import suppress
 from datetime import timedelta
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db import IntegrityError
 from django.db.models import F, QuerySet
 from django.utils import timezone
 
@@ -26,7 +26,7 @@ def _get_url_entry_from_short_url(short_url: str) -> Url:
 
 def get_redirect_url(short_url: str) -> str:
     url = _get_url_entry_from_short_url(short_url)
-    if url.is_expired:
+    if url.is_expired():
         raise ExpiredUrl(url.short)
     url.increment_hits()
     return url.long
@@ -45,20 +45,21 @@ def get_or_create_short_url(long_url: str) -> str:
     retries=MAX_RETRIES_FOR_URL_CLASH,
 )
 def _create_url_entry_with_retry(long_url: str) -> Url:
-    url_entry, is_available = Url.objects.get_or_create(
-        short=_generate_short_url(),
-        long=long_url,
-    )
-    if is_available:
-        return url_entry
-    raise ShortUrlTaken()
+    try:
+        return Url.objects.create(
+            short=_generate_short_url(),
+            long=long_url,
+        )
+    except IntegrityError:
+        raise ShortUrlTaken()
 
 
 def _is_url_valid(url: str) -> bool:
-    with suppress(ValidationError):
+    try:
         URLValidator()(url)
         return True
-    return False
+    except ValidationError:
+        return False
 
 
 def retrieve_expired_urls(grace_days: int) -> QuerySet[Url]:
